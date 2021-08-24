@@ -7,14 +7,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// type TodoCreateDTO struct {
-// 	Uuid        *string `gorm:"primaryKey"`
-// 	OwnerUuid   *string `gorm:"index"`
-// 	State       *string
-// 	Title       *string
-// 	Description *string
-// }
-
 func listTodos(c *gin.Context) {
 	var ownerUuid = c.Query("ownerUuid")
 	var todos, _ = dao.ListTodos(&ownerUuid)
@@ -22,24 +14,46 @@ func listTodos(c *gin.Context) {
 }
 
 func getTodo(c *gin.Context) {
-
+	var uuidToGet = c.Param("uuidToGet")
+	// var ownerUuid = c.Query("ownerUuid")
+	var todo, _ = dao.GetTodo(&uuidToGet)
+	c.JSON(200, todo)
 }
 
 func createTodo(c *gin.Context) {
-	var todoCreateDTO models.Todo
-	err := c.Bind(&todoCreateDTO)
+	var todoToCreate models.Todo
+	err := c.Bind(&todoToCreate)
 	if err != nil {
 		tools.SugaredLogger.Errorf("Error while deserializing body: %s", err)
 		c.Status(400)
 		return
 	}
-	dao.CreateTodo(&todoCreateDTO)
+	err = dao.CreateTodo(&todoToCreate)
+	if err != nil {
+		tools.SugaredLogger.Errorf("Error while creating todo: %s", err)
+		c.Status(500)
+		return
+	}
 
 	c.Status(201)
 }
 
 func updateTodo(c *gin.Context) {
+	var todoToUpdate models.Todo
+	err := c.Bind(&todoToUpdate)
+	if err != nil {
+		tools.SugaredLogger.Errorf("Error while deserializing body: %s", err)
+		c.Status(400)
+		return
+	}
+	err = dao.UpdateTodo(&todoToUpdate)
+	if err != nil {
+		tools.SugaredLogger.Errorf("Error while updating todo: %s", err)
+		c.Status(500)
+		return
+	}
 
+	c.Status(204)
 }
 
 func deleteTodo(c *gin.Context) {
@@ -50,6 +64,8 @@ func deleteTodo(c *gin.Context) {
 
 func AddPingRoutesHandlers(r *gin.Engine) {
 	r.GET("/todos", listTodos)
+	r.GET("/todos/:uuidToGet", getTodo)
 	r.POST("/todos", createTodo)
+	r.PUT("/todos/:uuidToUpdate", updateTodo)
 	r.DELETE("/todos/:uuidToDelete", deleteTodo)
 }
