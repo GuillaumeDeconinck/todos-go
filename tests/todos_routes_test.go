@@ -3,6 +3,7 @@ package api
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -17,6 +18,12 @@ func TestHandleListTodos(t *testing.T) {
 	// Setup
 	router := api.SetupApi()
 
+	uuid, title, ownerUuid, state := uuid.New().String(), "Do the chores", uuid.New().String(), "ACTIVE"
+	todoToCreate := models.Todo{Uuid: &uuid, Title: &title, OwnerUuid: &ownerUuid, State: &state}
+
+	updatedTitle := "Buy groceries"
+
+	// Will be the same as the Uuid above ^
 	var uuidToDelete *string
 
 	t.Run("List todos - should be empty", func(t *testing.T) {
@@ -26,19 +33,17 @@ func TestHandleListTodos(t *testing.T) {
 
 		assert.Equal(t, 200, w.Code)
 
-		// var received []models.Todo
-		// json.Unmarshal(w.Body.Bytes(), &received)
+		var received []models.Todo
+		json.Unmarshal(w.Body.Bytes(), &received)
 
-		// var expected []models.Todo
-		// assert.ElementsMatch(t, expected, received)
+		var expected []models.Todo
+		assert.ElementsMatch(t, expected, received)
 	})
 
 	t.Run("Create a new todo", func(t *testing.T) {
-		uuid, title, ownerUuid, state := uuid.New().String(), "Do the chores", uuid.New().String(), "ACTIVE"
-		todo := models.Todo{Uuid: &uuid, Title: &title, OwnerUuid: &ownerUuid, State: &state}
 
 		w := httptest.NewRecorder()
-		json_data, _ := json.Marshal(todo)
+		json_data, _ := json.Marshal(todoToCreate)
 		req, _ := http.NewRequest("POST", "/todos", bytes.NewBuffer(json_data))
 		req.Header.Set("Content-Type", "application/json")
 		router.ServeHTTP(w, req)
@@ -56,10 +61,57 @@ func TestHandleListTodos(t *testing.T) {
 		var received []models.Todo
 		json.Unmarshal(w.Body.Bytes(), &received)
 
-		uuidToDelete = received[0].Uuid
+		assert.Equal(t, 1, len(received))
 
-		// var expected []models.Todo
-		// assert.ElementsMatch(t, expected, received)
+		uuidToDelete = received[0].Uuid
+	})
+
+	t.Run("Get todo", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/todos/"+*uuidToDelete, nil)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, 200, w.Code)
+
+		var received models.Todo
+		json.Unmarshal(w.Body.Bytes(), &received)
+
+		fmt.Printf("%v", received)
+
+		assert.Equal(t, *uuidToDelete, *received.Uuid)
+		assert.Equal(t, title, *received.Title)
+	})
+
+	t.Run("Update todo", func(t *testing.T) {
+		w := httptest.NewRecorder()
+
+		// By reference, so yeah, we are modifying it directly
+		todoToUpdate := todoToCreate
+		todoToUpdate.Title = &updatedTitle
+
+		json_data, _ := json.Marshal(todoToUpdate)
+		req, _ := http.NewRequest("PUT", "/todos/"+*uuidToDelete, bytes.NewBuffer(json_data))
+		req.Header.Set("Content-Type", "application/json")
+
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, 204, w.Code)
+	})
+
+	t.Run("Get todo", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/todos/"+*uuidToDelete, nil)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, 200, w.Code)
+
+		var received models.Todo
+		json.Unmarshal(w.Body.Bytes(), &received)
+
+		fmt.Printf("%v", received)
+
+		assert.Equal(t, *uuidToDelete, *received.Uuid)
+		assert.Equal(t, updatedTitle, *received.Title)
 	})
 
 	t.Run("Delete todo", func(t *testing.T) {
@@ -68,5 +120,19 @@ func TestHandleListTodos(t *testing.T) {
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, 204, w.Code)
+	})
+
+	t.Run("List todos - should have zero now (deleted)", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/todos", nil)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, 200, w.Code)
+
+		var received []models.Todo
+		json.Unmarshal(w.Body.Bytes(), &received)
+
+		var expected []models.Todo
+		assert.ElementsMatch(t, expected, received)
 	})
 }
