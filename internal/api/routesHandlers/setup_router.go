@@ -1,4 +1,4 @@
-package handlers
+package routeshandlers
 
 import (
 	"github.com/GuillaumeDeconinck/todos-go/internal/api/configuration"
