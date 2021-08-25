@@ -25,4 +25,4 @@ jobs:
       - uses: extractions/setup-just@v1
       - id: run_tests
         name: Run tests
-        run: just test
+        run: just integration_tests
