@@ -16,7 +16,14 @@ func listTodos(c *gin.Context) {
 func getTodo(c *gin.Context) {
 	var uuidToGet = c.Param("uuidToGet")
 	// var ownerUuid = c.Query("ownerUuid")
-	var todo, _ = dao.GetTodo(&uuidToGet)
+	todo, err := dao.GetTodo(&uuidToGet)
+
+	if err != nil {
+		var httpError = ConvertToHttpError(err)
+		HandleError(c, httpError)
+		return
+	}
+
 	c.JSON(200, todo)
 }
 
