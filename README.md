@@ -8,7 +8,13 @@ Just like the [Todos API implemented with NodeJS](https://github.com/GuillaumeDe
 
 ## Requirements
 
-This api requires a Postgres instance running at 5432. The `app.env` file lists all the details about it, and this file can be modified to match your environment.
+This api requires a Postgres instance running at 5432. The `app.env` file lists all the details about it, and this file can be modified to match your environment. A simple Postgres instance can be ran with the following command:
+
+```sh
+just launch_db
+# or
+docker run -d -p 5432:5432 --rm --name postgres -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=password -e POSTGRES_DB=todos postgres:alpine
+```
 
 The commands described here are implemented with the help of
 
@@ -21,11 +27,9 @@ For running the app, simply run the following command:
 
 ```sh
 just dev
-```
-
-Without `Just`, the command is as follows:
-
-```sh
+# or
+reflex -r '\.go$' -s go run cmd/api.go
+# or without autoreload
 go run cmd/api.go
 ```
 
@@ -34,14 +38,12 @@ go run cmd/api.go
 For running unit tests without cache, use the following command:
 
 ```sh
-just tests
-```
-
-Without `Just`, the command is as follows:
-
-```sh
+just test
+# or
 go clean -testcache && go test ./...
 ```
+
+> Note that `go clean -testcache` is not specifically needed, but it allows to run the tests from scratch
 
 ### Env vars
 
