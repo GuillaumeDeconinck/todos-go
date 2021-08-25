@@ -1,4 +1,4 @@
-package handlers
+package routeshandlers
 
 import (
 	"github.com/gin-gonic/gin"
