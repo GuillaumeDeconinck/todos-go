@@ -3,7 +3,7 @@ package api
 import (
 	"github.com/GuillaumeDeconinck/todos-go/internal/api/configuration"
 	"github.com/GuillaumeDeconinck/todos-go/internal/api/dao"
-	routesHandlers "github.com/GuillaumeDeconinck/todos-go/internal/api/routesHandlers"
+	"github.com/GuillaumeDeconinck/todos-go/internal/api/routes"
 	"github.com/GuillaumeDeconinck/todos-go/pkg/tools"
 	"github.com/gin-gonic/gin"
 )
@@ -16,7 +16,7 @@ func SetupApi() *gin.Engine {
 
 	dao.InitDB(&configuration)
 
-	r := routesHandlers.SetupRouter(configuration)
+	r := routes.SetupRouter(configuration)
 
 	return r
 }
