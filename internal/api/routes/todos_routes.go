@@ -1,4 +1,4 @@
-package routeshandlers
+package routes
 
 import (
 	"github.com/GuillaumeDeconinck/todos-go/internal/api/dao"
