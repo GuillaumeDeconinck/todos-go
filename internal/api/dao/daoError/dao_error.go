@@ -1,8 +1,6 @@
 package daoerror
 
 import (
-	"fmt"
-
 	"github.com/GuillaumeDeconinck/todos-go/pkg/tools"
 )
 
@@ -14,7 +12,6 @@ type DaoError struct {
 }
 
 func (err DaoError) Error() string {
-	fmt.Println("Error() called")
 	return err.Code
 }
 

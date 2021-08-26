@@ -5,7 +5,14 @@ import (
 	"github.com/GuillaumeDeconinck/todos-go/pkg/models"
 	"github.com/GuillaumeDeconinck/todos-go/pkg/tools"
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 )
+
+var validate *validator.Validate
+
+func init() {
+	validate = validator.New()
+}
 
 func listTodos(c *gin.Context) {
 	var ownerUuid = c.Query("ownerUuid")
@@ -35,6 +42,13 @@ func createTodo(c *gin.Context) {
 		c.Status(400)
 		return
 	}
+
+	err = validate.Struct(todoToCreate)
+	if err != nil {
+		c.Status(400)
+		return
+	}
+
 	err = dao.CreateTodo(&todoToCreate)
 	if err != nil {
 		tools.SugaredLogger.Errorf("Error while creating todo: %s", err)
@@ -53,6 +67,13 @@ func updateTodo(c *gin.Context) {
 		c.Status(400)
 		return
 	}
+
+	err = validate.Struct(todoToUpdate)
+	if err != nil {
+		c.Status(400)
+		return
+	}
+
 	err = dao.UpdateTodo(&todoToUpdate)
 	if err != nil {
 		tools.SugaredLogger.Errorf("Error while updating todo: %s", err)

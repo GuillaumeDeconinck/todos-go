@@ -20,7 +20,11 @@ func GetTodo(uuidToGet *string) (*models.Todo, error) {
 		return nil, daoerror.New(daoerror.NOT_FOUND_CODE)
 	}
 
-	return &todos[0], daoerror.ConvertToDaoError(result.Error)
+	if result.Error != nil {
+		return nil, daoerror.ConvertToDaoError(result.Error)
+	}
+
+	return &todos[0], nil
 }
 
 func CreateTodo(todo *models.Todo) error {
