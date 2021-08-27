@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"net/http"
+
 	"github.com/GuillaumeDeconinck/todos-go/internal/api/dao"
 	"github.com/GuillaumeDeconinck/todos-go/pkg/models"
 	"github.com/GuillaumeDeconinck/todos-go/pkg/tools"
@@ -17,11 +19,12 @@ func init() {
 func listTodos(c *gin.Context) {
 	var ownerUuid = c.Query("ownerUuid")
 	var todos, _ = dao.ListTodos(&ownerUuid)
-	c.JSON(200, todos)
+	c.JSON(http.StatusOK, todos)
 }
 
 func getTodo(c *gin.Context) {
 	var uuidToGet = c.Param("uuidToGet")
+	// Todo: ownerUuid should be mandatory (it should/will be provided by the auth JWT)
 	// var ownerUuid = c.Query("ownerUuid")
 	todo, err := dao.GetTodo(&uuidToGet)
 
@@ -31,7 +34,7 @@ func getTodo(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, todo)
+	c.JSON(http.StatusOK, todo)
 }
 
 func createTodo(c *gin.Context) {
@@ -39,24 +42,24 @@ func createTodo(c *gin.Context) {
 	err := c.Bind(&todoToCreate)
 	if err != nil {
 		tools.SugaredLogger.Errorf("Error while deserializing body: %s", err)
-		c.Status(400)
+		c.Status(http.StatusBadRequest)
 		return
 	}
 
 	err = validate.Struct(todoToCreate)
 	if err != nil {
-		c.Status(400)
+		c.Status(http.StatusBadRequest)
 		return
 	}
 
 	err = dao.CreateTodo(&todoToCreate)
 	if err != nil {
-		tools.SugaredLogger.Errorf("Error while creating todo: %s", err)
-		c.Status(500)
+		var httpError = ConvertToHttpError(err)
+		HandleError(c, httpError)
 		return
 	}
 
-	c.Status(201)
+	c.Status(http.StatusCreated)
 }
 
 func updateTodo(c *gin.Context) {
@@ -64,30 +67,30 @@ func updateTodo(c *gin.Context) {
 	err := c.Bind(&todoToUpdate)
 	if err != nil {
 		tools.SugaredLogger.Errorf("Error while deserializing body: %s", err)
-		c.Status(400)
+		c.Status(http.StatusBadRequest)
 		return
 	}
 
 	err = validate.Struct(todoToUpdate)
 	if err != nil {
-		c.Status(400)
+		c.Status(http.StatusBadRequest)
 		return
 	}
 
 	err = dao.UpdateTodo(&todoToUpdate)
 	if err != nil {
-		tools.SugaredLogger.Errorf("Error while updating todo: %s", err)
-		c.Status(500)
+		var httpError = ConvertToHttpError(err)
+		HandleError(c, httpError)
 		return
 	}
 
-	c.Status(204)
+	c.Status(http.StatusNoContent)
 }
 
 func deleteTodo(c *gin.Context) {
 	var uuidToDelete = c.Param("uuidToDelete")
 	dao.DeleteTodo(&uuidToDelete)
-	c.Status(204)
+	c.Status(http.StatusNoContent)
 }
 
 func AddPingRoutesHandlers(r *gin.Engine) {
