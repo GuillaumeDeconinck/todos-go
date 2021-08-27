@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestHandleListTodos(t *testing.T) {
+func TestTodosRoutes(t *testing.T) {
 	// Setup
 	router := api.SetupApi()
 
