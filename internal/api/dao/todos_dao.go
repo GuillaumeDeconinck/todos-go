@@ -3,11 +3,22 @@ package dao
 import (
 	daoerror "github.com/GuillaumeDeconinck/todos-go/internal/api/dao/daoError"
 	"github.com/GuillaumeDeconinck/todos-go/pkg/models"
+	"gorm.io/gorm"
 )
 
-func ListTodos(owner_uuid *string) ([]models.Todo, error) {
+func ListTodos(ownerUuid *string) ([]models.Todo, error) {
 	var todos []models.Todo
-	result := db.Find(&todos)
+
+	var result *gorm.DB
+	if ownerUuid != nil && *ownerUuid != "" {
+		result = db.Where("owner_uuid = ?", *ownerUuid).Find(&todos)
+	} else {
+		result = db.Find(&todos)
+	}
+
+	if result.Error != nil {
+		return nil, daoerror.ConvertToDaoError(result.Error)
+	}
 
 	return todos, result.Error
 }
@@ -20,22 +31,43 @@ func GetTodo(uuidToGet *string) (*models.Todo, error) {
 		return nil, daoerror.New(daoerror.NOT_FOUND_CODE)
 	}
 
-	return &todos[0], daoerror.ConvertToDaoError(result.Error)
+	if result.Error != nil {
+		return nil, daoerror.ConvertToDaoError(result.Error)
+	}
+
+	return &todos[0], nil
 }
 
 func CreateTodo(todo *models.Todo) error {
 	result := db.Create(&todo)
 
-	return result.Error
+	if result.Error != nil {
+		return daoerror.ConvertToDaoError(result.Error)
+	}
+
+	return nil
 }
 
 func UpdateTodo(todo *models.Todo) error {
-	result := db.Where("uuid = ?", todo.Uuid).Save(&todo)
+	result := db.Model(todo).Where("uuid = ?", todo.Uuid).Updates(&todo)
 
-	return result.Error
+	if result.Error != nil {
+		return daoerror.ConvertToDaoError(result.Error)
+	}
+
+	if result.RowsAffected == 0 {
+		return daoerror.New(daoerror.NOT_FOUND_CODE)
+	}
+
+	return nil
 }
 
 func DeleteTodo(uuidToDelete *string) error {
 	result := db.Where("uuid = ?", *uuidToDelete).Delete(&models.Todo{})
-	return result.Error
+
+	if result.Error != nil {
+		return daoerror.ConvertToDaoError(result.Error)
+	}
+
+	return nil
 }

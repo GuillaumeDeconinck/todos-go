@@ -2,6 +2,7 @@ package routes
 
 import (
 	"fmt"
+	"net/http"
 	"reflect"
 
 	daoerror "github.com/GuillaumeDeconinck/todos-go/internal/api/dao/daoError"
@@ -27,19 +28,19 @@ func ConvertToHttpError(err error) *HttpError {
 		fmt.Printf("Dao error detected\n")
 		switch err.Error() {
 		case daoerror.INTERNAL_ERROR_CODE:
-			statusCode = 500
+			statusCode = http.StatusInternalServerError
 			errorName = "Internal server error"
 		case daoerror.NOT_FOUND_CODE:
-			statusCode = 404
+			statusCode = http.StatusNotFound
 			errorName = "Not found"
 		default:
-			statusCode = 500
+			statusCode = http.StatusInternalServerError
 			errorName = "Internal server error"
 		}
 	// If it's an "error" (base class from Golang)
 	default:
 		fmt.Printf("Default error detected")
-		statusCode = 500
+		statusCode = http.StatusInternalServerError
 		errorName = "Internal server error"
 	}
 
