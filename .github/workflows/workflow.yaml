@@ -26,3 +26,27 @@ jobs:
       - id: run_tests
         name: Run tests
         run: just integration_tests
+  build_push_image:
+    needs: ["run_tests"]
+    name: Build & push Docker image
+    runs-on: ubuntu-latest
+    if: ${{ github.ref == 'refs/heads/main' }}
+    steps:
+      - id: checkout
+        uses: actions/checkout@v2
+      - id: login
+        name: Log in to GitHub Docker Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: build
+        name: Build image
+        run: |
+          # Need to handle tags at some point, using latest is not a best practice of course for production ;)
+          IMAGE_PATH=ghcr.io/${{ github.repository }}
+          # Change uppercase to lowercase
+          IMAGE_PATH=$(echo $IMAGE_PATH | tr '[A-Z]' '[a-z]')
+          docker build --tag $IMAGE_PATH:latest .
+          docker push $IMAGE_PATH:latest
