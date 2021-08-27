@@ -93,7 +93,7 @@ func deleteTodo(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
-func AddPingRoutesHandlers(r *gin.Engine) {
+func AddTodosRoutesHandlers(r *gin.Engine) {
 	r.GET("/todos", listTodos)
 	r.GET("/todos/:uuidToGet", getTodo)
 	r.POST("/todos", createTodo)

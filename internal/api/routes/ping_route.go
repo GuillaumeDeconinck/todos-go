@@ -10,6 +10,6 @@ func ping(c *gin.Context) {
 	})
 }
 
-func AddTodosRoutesHandlers(r *gin.Engine) {
+func AddPingRoutesHandlers(r *gin.Engine) {
 	r.GET("/ping", ping)
 }
