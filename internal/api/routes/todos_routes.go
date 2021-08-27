@@ -18,7 +18,14 @@ func init() {
 
 func listTodos(c *gin.Context) {
 	var ownerUuid = c.Query("ownerUuid")
-	var todos, _ = dao.ListTodos(&ownerUuid)
+	var todos, err = dao.ListTodos(&ownerUuid)
+
+	if err != nil {
+		var httpError = ConvertToHttpError(err)
+		HandleError(c, httpError)
+		return
+	}
+
 	c.JSON(http.StatusOK, todos)
 }
 
