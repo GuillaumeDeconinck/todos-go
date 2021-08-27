@@ -46,5 +46,7 @@ jobs:
         run: |
           # Need to handle tags at some point, using latest is not a best practice of course for production ;)
           IMAGE_PATH=ghcr.io/${{ github.repository }}
+          # Change uppercase to lowercase
+          IMAGE_PATH=$(echo $IMAGE_PATH | tr '[A-Z]' '[a-z]')
           docker build --tag $IMAGE_PATH:latest .
           docker push $IMAGE_PATH:latest
