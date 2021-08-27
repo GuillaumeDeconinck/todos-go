@@ -30,7 +30,7 @@ jobs:
     needs: ["run_tests"]
     name: Build & push Docker image
     runs-on: ubuntu-latest
-    # if: ${{ github.ref == 'refs/heads/main' }}
+    if: ${{ github.ref == 'refs/heads/main' }}
     steps:
       - id: checkout
         uses: actions/checkout@v2
